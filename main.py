@@ -60,10 +60,18 @@ pb_auth = pb.admins.auth_with_password(
 # Intialize Pocketbase Collections
 collections = {
   'game': pb.collection('game'),
-  'npc': pb.collection('npcs'),
-  'context': pb.collection('context'),
-  'nation': pb.collection('nations')
+  'npcs': pb.collection('npcs'),
+  'events': pb.collection('events'),
+  'nations': pb.collection('nations')
 }
+
+game = collections['game'].get_full_list()
+npcs = collections['npcs'].get_full_list()
+events = collections["events"].get_full_list()
+nations = collections["nations"].get_full_list()
+
+for npc in npcs:
+  print(npc.name)
 
 
 
