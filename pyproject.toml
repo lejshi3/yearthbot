@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "yearthbot"
+version = "0.1.0"
+description = "A silly little discord bot for a not so silly little game."
+authors = ["Joshua <45546025+lejshi3@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+anthropic = "^0.21.3"
+discord = "^2.3.2"
+pocketbase = "^0.10.0"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
