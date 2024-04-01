@@ -10,6 +10,8 @@ import os
 import time
 import asyncio
 
+import pandas as pd
+
 from anthropic import Anthropic
 from pocketbase import PocketBase
 from discord import Client as Discord
@@ -43,9 +45,7 @@ snap = Discord (
 )
 
 claude = Anthropic (
-  api_key = env_vars [
-    "anthropic_api_key"
-  ]
+  api_key = env_vars["anthropic_api_key"]
 )
 
 pb = PocketBase (
@@ -61,17 +61,45 @@ pb_auth = pb.admins.auth_with_password(
 collections = {
   'game': pb.collection('game'),
   'npcs': pb.collection('npcs'),
-  'events': pb.collection('events'),
-  'nations': pb.collection('nations')
+  'concepts': pb.collection('concepts'),
+  'nations': pb.collection('nations'),
+  'tags': pb.collection('tags')
 }
 
-game = collections['game'].get_full_list()
-npcs = collections['npcs'].get_full_list()
-events = collections["events"].get_full_list()
-nations = collections["nations"].get_full_list()
+ai_models = {
+      "haiku": "claude-3-haiku-20240307",
+      "sonnet": "claude-3-sonnet-20240229",
+      "opus": "claude-3-opus-20240229"
+  }
 
-for npc in npcs:
-  print(npc.name)
+game = collections['game']
+npcs = collections['npcs']
+concepts = collections["concepts"]
+nations = collections["nations"]
+tags = collections["tags"]
 
+knowledge_list = []
+tag_list = []
 
+for tag in tags.get_full_list(200, {
+  'sort': 'name'
+}):
+  tag_list.append(tag.name)
+
+all_tags = ", ".join(tag_list)
+
+current_tags = "Blixt Imperium, Kentucky"
+current_tag_list = current_tags.split(", ")
+
+for tag in current_tag_list:
+  for concept in concepts.get_full_list(50, {'filter': f'tags.name ?= "{tag}"'}):
+      knowledge_list.append(f"{concept.name} \n--- \n{concept.description}\n""")
+
+temp_df = pd.DataFrame({'col': knowledge_list})
+temp_df.drop_duplicates(inplace = True)
+
+pruned_knowledge_list = temp_df['col'].to_list()
+knowledge = "\n".join(pruned_knowledge_list)
+
+print(knowledge)
 

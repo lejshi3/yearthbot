@@ -12,6 +12,7 @@ anthropic = "^0.21.3"
 discord = "^2.3.2"
 pocketbase = "^0.10.0"
 python-dotenv = "^1.0.1"
+pandas = "^2.2.1"
 
 
 [build-system]
