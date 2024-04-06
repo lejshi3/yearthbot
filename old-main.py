@@ -60,12 +60,10 @@ pb_auth = pb.admins.auth_with_password(
 # Intialize Pocketbase Collections
 collections = {
   'game': pb.collection('game'),
-  'characters': pb.collection('characters'),
+  'npcs': pb.collection('npcs'),
   'concepts': pb.collection('concepts'),
   'nations': pb.collection('nations'),
-  'tags': pb.collection('tags'),
-  "resources": pb.collection("resources"),
-  "batches": pb.collection("batches")
+  'tags': pb.collection('tags')
 }
 
 ai_models = {
@@ -75,31 +73,33 @@ ai_models = {
   }
 
 game = collections['game']
-npcs = collections['characters']
+npcs = collections['npcs']
 concepts = collections["concepts"]
 nations = collections["nations"]
 tags = collections["tags"]
-resources = collections["resources"]
-batches = collections["batches"]
 
-resources = {}
-batch_dict = {}
+knowledge_list = []
+tag_list = []
 
-for res_batch in batches.get_full_list(200, {
-  'sort': 'owner',
-  'expand': 'owner, resource',
-  'filter': 'owner.id = "tdzm2lsrfyxlg9n"'
-}
-):
-  batch_owner = res_batch.expand['owner'].name
-  batch_resource = res_batch.expand['resource'].name
-  batch_qty = res_batch.quantity
+for tag in tags.get_full_list(200, {
+  'sort': 'name'
+}):
+  tag_list.append(tag.name)
 
-  key = batch_resource
-  
-  if key not in batch_dict:
-    batch_dict[key] = 
-  
+all_tags = ", ".join(tag_list)
 
-print(resource_list)
-print(batch_list)
+current_tags = "Blixt Imperium, Kentucky"
+current_tag_list = current_tags.split(", ")
+
+for tag in current_tag_list:
+  for concept in concepts.get_full_list(50, {'filter': f'tags.name ?= "{tag}"'}):
+      knowledge_list.append(f"{concept.name} \n--- \n{concept.description}\n""")
+
+temp_df = pd.DataFrame({'col': knowledge_list})
+temp_df.drop_duplicates(inplace = True)
+
+pruned_knowledge_list = temp_df['col'].to_list()
+knowledge = "\n".join(pruned_knowledge_list)
+
+print(knowledge)
+
