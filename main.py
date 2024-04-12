@@ -82,84 +82,39 @@ concepts = collections["concepts"]
 nations = collections["nations"]
 tags = collections["tags"]
 resources = collections["resources"]
-batches = collections["batches"]
-trades = collections["trades"]
 
-batch_dict = {}
-
-def group_batches():
-  for res_batch in batches.get_full_list(200, {
-    'sort': 'owner',
-    'expand': 'owner, resource',
-  }):
-    batch_id = res_batch.id
-    batch_owner = res_batch.expand['owner'].name
-    batch_resource = res_batch.expand['resource'].name
-    batch_qty = res_batch.quantity
-
-    key = (batch_owner, batch_resource)
-    
-    if key not in batch_dict:
-      batch_dict[key] = {
-        'batch_ids': [batch_id],
-        'quantity': batch_qty
-      }
-
-    else:
-      batch_dict[key]['batch_ids'].append(batch_id)
-      batch_dict[key]['quantity'] += batch_qty
-
-  for key, value in batch_dict.items():
-    prime_id = value['batch_ids'][0]
-    total_qty = value['quantity']
-    
-    batches.update(prime_id, {'quantity': total_qty})
-
-    for extra_id in value['batch_ids'][1:]:
-      batches.delete(extra_id) 
 
 # Use `'filter': 'id = "tdzm2lsrfyxlg9n"'` to filter to just Solia.
-
-def check_trades():
-  for trade in trades.get_full_list(200, {
-    'sort': 'name',
-    'filter': 'isActive = True',
-    'expand': 'partyA, partyB'
-  }):
-    name = trade.name
-    partyA = trade.expand['partyA'].id
-    partyA_name = trade.expand['partyA'].name
-    partyB = trade.expand['partyB'].id
-    partyB_name = trade.expand['partyB'].name
-    print(f'{name}: {partyA_name} & {partyB_name}')
 
 
 def monthly_prod():
   for nation in nations.get_full_list(200, {
-      'sort': 'name'
+      'sort': 'name',
+      'filter': 'id = "tdzm2lsrfyxlg9n"'
     }):
     nation_id = nation.id
+    nation_res = nation.resources
     base_prod = nation.base_production
     prod_mod = nation.production_modifiers
-    prod = base_prod
-
-    for resource, value in prod_mod.items():
-      if resource in prod:
-        prod[resource] += value
-
-      else:
-        prod[resource] = value
-      
-    for resource, value in prod.items():
-      current_resource = resources.get_first_list_item(
-        f'name = "{resource}"'
-      )
-      
-      batches.create({
-        'owner': nation_id,
-        'resource': current_resource.id,
-        'quantity': value
-        })
     
-check_trades()
-group_batches()
+    prod = base_prod
+    pprint(nation_res)
+    
+    for modifier in prod_mod:
+      name = modifier['name']
+      valid = modifier['valid']
+      res = modifier['resources']
+
+      for cur_res, value in res.items():
+        prod[cur_res] += value
+
+      valid -= 1
+      if valid <= 0:
+        prod_mod.remove(modifier)
+
+    for cur_res, value in prod.items():
+      nation_res[cur_res] += value
+      
+    pprint(nation_res)
+    
+monthly_prod()
